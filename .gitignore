@@ -1,0 +1,55 @@
+# --- PYTHON ---
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C-extensions
+*.so
+
+# Dystrybucja / Instalacja
+dist/
+build/
+*.egg
+*.egg-info/
+
+# --- VIRTUAL ENVIRONMENTS (VENV) ---
+venv/
+.venv/
+env/
+ENV/
+.env
+
+# --- VS CODE ---
+.vscode/
+# !.vscode/launch.json
+*.code-workspace
+
+# --- OPERATING SYSTEMS ---
+# macOS
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Windows
+Desktop.ini
+$RECYCLE.BIN/
+
+# --- PROJEKT BRAINACCESS (Specyficzne dla Was) ---
+*.csv
+*.edf
+*.txt
+recorded_data/
+logs/
+
+# --- BEZPIECZEŃSTWO ---
+.env
+secrets.json
+
+# --- FRONTEND  ---
+node_modules/
+npm-debug.log
+yarn-error.log
