@@ -144,4 +144,32 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.transition = 'opacity 0.3s ease';
     document.body.style.opacity = '1';
   }, 10);
+  
+  // Przycisk testowy powiadomień
+  const testBtn = document.getElementById('test-notification-btn');
+  if (testBtn) {
+    testBtn.addEventListener('click', () => {
+      console.log('📬 Klik na test powiadomienia');
+      testBtn.disabled = true;
+      testBtn.textContent = '⏳ Wysyłanie...';
+      
+      chrome.runtime.sendMessage(
+        { action: 'testNotification' },
+        (response) => {
+          testBtn.disabled = false;
+          if (response?.success) {
+            testBtn.textContent = '✅ Wysłano!';
+            setTimeout(() => {
+              testBtn.textContent = '📬 Test powiadomienia';
+            }, 2000);
+          } else {
+            testBtn.textContent = '❌ Błąd!';
+            setTimeout(() => {
+              testBtn.textContent = '📬 Test powiadomienia';
+            }, 2000);
+          }
+        }
+      );
+    });
+  }
 });
