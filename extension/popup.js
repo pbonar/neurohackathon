@@ -4,18 +4,21 @@ let socket = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_DELAY = 30000;
 
+// Zmienne globalne
 let currentPuzzle = [];
 let currentSolution = [];
+let sudokuTimerInterval = null; // Zmienna do licznika czasu
 
-
+// Lista lokalnych plików wideo
 const brainrotVideos = [
     "videos/video1.mp4",
     "videos/video2.mp4",
     "videos/video3.mp4"
 ];
 
-
+// Pobieranie elementów z HTML
 const elements = {
+  // Główne wskaźniki
   textFocus: document.getElementById('text-focus'),
   barFocus: document.getElementById('bar-focus'),
   textStress: document.getElementById('text-stress'),
@@ -25,25 +28,33 @@ const elements = {
   lastUpdate: document.getElementById('last-update'),
   alertBox: document.getElementById('alert-box'),
   
+  // Nakładka i widoki
   overlayCalibration: document.getElementById('overlay-calibration'),
   stepMenu: document.getElementById('calib-step-menu'),
   stepSudoku: document.getElementById('calib-step-sudoku'),
   stepBrainrot: document.getElementById('calib-step-brainrot'),
   
-  btnStartCalib: document.getElementById('btn-start-calib'), // Główny przycisk startu
+  // Przyciski
+  btnStartCalib: document.getElementById('btn-start-calib'),
   btnChooseSudoku: document.getElementById('btn-choose-sudoku'),
   btnChooseBrainrot: document.getElementById('btn-choose-brainrot'),
   btnBackMain: document.getElementById('btn-back-main'),
 
+  // Elementy Sudoku
   sudokuBoard: document.getElementById('sudoku-board'),
   btnFinishSudoku: document.getElementById('btn-finish-sudoku'),
-
   btnBackSudoku: document.getElementById('btn-back-sudoku'),
+  sudokuTimer: document.getElementById('sudoku-timer'), // Licznik czasu w HTML
 
+  // Elementy Brainrot
   brainrotPlayer: document.getElementById('brainrot-player'),
   btnNextVideo: document.getElementById('btn-next-video'),
   btnFinishBrainrot: document.getElementById('btn-finish-brainrot')
 };
+
+// ============================================================
+// 1. LOGIKA WEBSOCKET
+// ============================================================
 
 function connectToMonitor() {
   try {
@@ -73,10 +84,8 @@ function connectToMonitor() {
     socket.onclose = () => {
       console.log("🔌 Connection closed, retrying...");
       updateConnectionStatus('connecting', 'Ponowne łączenie...');
-      
       const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
       reconnectAttempts++;
-      
       setTimeout(connectToMonitor, delay);
     };
   } catch (error) {
@@ -98,7 +107,9 @@ function sendCommand(command, extraData = {}) {
     }
 }
 
-
+// ============================================================
+// 2. AKTUALIZACJA UI
+// ============================================================
 
 function updateUI(data) {
   elements.textFocus.innerText = data.focus + "%";
@@ -143,6 +154,9 @@ function updateLastUpdateTime() {
   elements.lastUpdate.innerText = `Ostatnia aktualizacja: ${now.toLocaleTimeString()}`;
 }
 
+// ============================================================
+// 3. NAWIGACJA (PRZEŁĄCZANIE EKRANÓW)
+// ============================================================
 
 function showSection(sectionId) {
     elements.stepMenu.classList.add('hidden');
@@ -154,20 +168,23 @@ function showSection(sectionId) {
     if (sectionId === 'brainrot') elements.stepBrainrot.classList.remove('hidden');
 }
 
+// Główny przycisk "Start Kalibracji"
 elements.btnStartCalib.addEventListener('click', () => {
     elements.overlayCalibration.classList.remove('hidden');
     showSection('menu');
 });
 
+// Przycisk "Anuluj" w menu
 elements.btnBackMain.addEventListener('click', () => {
     elements.overlayCalibration.classList.add('hidden');
 });
 
-
+// ============================================================
+// 4. SUDOKU & TIMER
+// ============================================================
 
 elements.btnChooseSudoku.addEventListener('click', () => {
     showSection('sudoku');
-    
     elements.sudokuBoard.innerHTML = '<div style="color:#666; padding:30px; text-align:center;">Ładowanie Sudoku...</div>';
 
     fetch('https://sudoku-api.vercel.app/api/dosuku')
@@ -178,13 +195,18 @@ elements.btnChooseSudoku.addEventListener('click', () => {
             currentSolution = rawGrid.solution.flat();
             
             renderSudoku(currentPuzzle);
-            
             sendCommand("start_calibration", { mode: "sudoku" });
+            
+            // START TIMERA
+            startSudokuTimer();
         })
         .catch(err => {
             console.error("Błąd API Sudoku:", err);
             useBackupSudoku();
             sendCommand("start_calibration", { mode: "sudoku" });
+            
+            // START TIMERA (nawet przy backupie)
+            startSudokuTimer();
         });
 });
 
@@ -195,19 +217,15 @@ function renderSudoku(puzzleData) {
         input.type = 'text'; 
         input.className = 'sudoku-cell';
         input.maxLength = 1;
-
         if (num !== 0) {
             input.value = num;
             input.disabled = true;
         }
-
         input.addEventListener('input', (e) => {
             if (!/^[1-9]$/.test(e.target.value)) e.target.value = '';
         });
-
         const row = Math.floor(index / 9);
         if (row === 2 || row === 5) input.style.borderBottom = "2px solid #333";
-
         elements.sudokuBoard.appendChild(input);
     });
 }
@@ -220,6 +238,7 @@ function useBackupSudoku() {
     renderSudoku(currentPuzzle);
 }
 
+// Przycisk "Gotowe" w Sudoku
 elements.btnFinishSudoku.addEventListener('click', () => {
     const cells = document.querySelectorAll('.sudoku-cell');
     let errors = 0;
@@ -228,44 +247,73 @@ elements.btnFinishSudoku.addEventListener('click', () => {
     cells.forEach((cell, index) => {
         const userValue = parseInt(cell.value);
         const correctValue = currentSolution[index];
-
         cell.style.backgroundColor = "white";
         if (cell.disabled) cell.style.backgroundColor = "#f0f0f0";
-
-        if (!cell.value) {
-            isComplete = false;
-            return;
-        }
-
-        if (userValue !== correctValue) {
-            cell.style.backgroundColor = "#ffcdd2"; // Błąd
-            errors++;
-        } else if (!cell.disabled) {
-            cell.style.backgroundColor = "#c8e6c9"; // Dobrze
-        }
+        if (!cell.value) { isComplete = false; return; }
+        if (userValue !== correctValue) { cell.style.backgroundColor = "#ffcdd2"; errors++; }
+        else if (!cell.disabled) { cell.style.backgroundColor = "#c8e6c9"; }
     });
 
     if (!isComplete) { alert("Uzupełnij wszystkie pola!"); return; }
     if (errors > 0) { alert(`Masz ${errors} błędów!`); return; }
 
+    stopSudokuTimer(); // Zatrzymaj czas
     alert("BRAWO! Kalibracja zakończona sukcesem.");
     finishCalibration();
 });
 
+// Przycisk "Wróć" w Sudoku
 elements.btnBackSudoku.addEventListener('click', () => {
+    stopSudokuTimer(); // Zatrzymaj czas
     showSection('menu'); 
-    
-    if (socket && socket.readyState === WebSocket.OPEN) {
-        socket.send(JSON.stringify({ command: "stop_calibration" }));
-    }
+    sendCommand("stop_calibration");
 });
 
+// --- FUNKCJE TIMERA ---
 
+function startSudokuTimer() {
+    let timeLeft = 60; // Czas w sekundach
+    
+    // Reset wizualny
+    if(elements.sudokuTimer) {
+        elements.sudokuTimer.innerText = "01:00";
+        elements.sudokuTimer.style.color = "#d32f2f"; 
+    }
+
+    if (sudokuTimerInterval) clearInterval(sudokuTimerInterval);
+
+    sudokuTimerInterval = setInterval(() => {
+        timeLeft--;
+
+        const minutes = Math.floor(timeLeft / 60);
+        const seconds = timeLeft % 60;
+        
+        if(elements.sudokuTimer) {
+            elements.sudokuTimer.innerText = `0${minutes}:${seconds < 10 ? '0' : ''}${seconds}`;
+        }
+
+        if (timeLeft <= 0) {
+            stopSudokuTimer();
+            alert("⏰ CZAS MINĄŁ! Koniec kalibracji.");
+            finishCalibration(); 
+        }
+    }, 1000);
+}
+
+function stopSudokuTimer() {
+    if (sudokuTimerInterval) {
+        clearInterval(sudokuTimerInterval);
+        sudokuTimerInterval = null;
+    }
+}
+
+// ============================================================
+// 5. BRAINROT LOGIC
+// ============================================================
 
 elements.btnChooseBrainrot.addEventListener('click', () => {
     showSection('brainrot');
     loadRandomVideo();
-    
     sendCommand("start_calibration", { mode: "brainrot" });
 });
 
@@ -277,29 +325,26 @@ elements.btnFinishBrainrot.addEventListener('click', () => {
     finishCalibration();
 });
 
-
-
 function loadRandomVideo() {
     const randomVideoFile = brainrotVideos[Math.floor(Math.random() * brainrotVideos.length)];
-    
     console.log("Ładowanie lokalnego wideo:", randomVideoFile);
-    
     elements.brainrotPlayer.src = randomVideoFile;
-    elements.brainrotPlayer.play().catch(e => console.log("Autoplay zablokowany, user musi kliknąć play", e));
+    // Autoplay w popupie
+    elements.brainrotPlayer.play().catch(e => console.log("Autoplay zablokowany:", e));
 }
 
+// ============================================================
+// 6. WSPÓLNE ZAKOŃCZENIE I START
+// ============================================================
 
 function finishCalibration() {
     elements.overlayCalibration.classList.add('hidden');
-    
     elements.brainrotPlayer.pause();
     elements.brainrotPlayer.src = ""; 
-
     sendCommand("stop_calibration");
 }
 
-
-
+// Inicjalizacja przy starcie
 connectToMonitor();
 
 document.addEventListener('DOMContentLoaded', () => {
@@ -308,32 +353,4 @@ document.addEventListener('DOMContentLoaded', () => {
     document.body.style.transition = 'opacity 0.3s ease';
     document.body.style.opacity = '1';
   }, 10);
-  
-  // Przycisk testowy powiadomień
-  const testBtn = document.getElementById('test-notification-btn');
-  if (testBtn) {
-    testBtn.addEventListener('click', () => {
-      console.log('📬 Klik na test powiadomienia');
-      testBtn.disabled = true;
-      testBtn.textContent = '⏳ Wysyłanie...';
-      
-      chrome.runtime.sendMessage(
-        { action: 'testNotification' },
-        (response) => {
-          testBtn.disabled = false;
-          if (response?.success) {
-            testBtn.textContent = '✅ Wysłano!';
-            setTimeout(() => {
-              testBtn.textContent = '📬 Test powiadomienia';
-            }, 2000);
-          } else {
-            testBtn.textContent = '❌ Błąd!';
-            setTimeout(() => {
-              testBtn.textContent = '📬 Test powiadomienia';
-            }, 2000);
-          }
-        }
-      );
-    });
-  }
 });
