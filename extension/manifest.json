@@ -3,32 +3,28 @@
   "name": "Touch the Grass",
   "version": "1.0.0",
   "description": "Stay calm and focused: reduce stress while sending messages and emails.",
-  
   "icons": {
     "16": "icons/cow-16.png",
     "48": "icons/cow-48.png",
     "128": "icons/cow-128.png"
   },
-
   "permissions": [
     "tabs",
     "activeTab",
-    "storage"
+    "storage",
+    "notifications"
   ],
-
   "action": {
     "default_popup": "popup.html",
     "default_icon": {
-    "16": "icons/cow-16.png",
-    "48": "icons/cow-48.png",
-    "128": "icons/cow-128.png"
+      "16": "icons/cow-16.png",
+      "48": "icons/cow-48.png",
+      "128": "icons/cow-128.png"
     }
   },
-
   "background": {
     "service_worker": "background.js"
   },
-
   "content_scripts": [
     {
       "matches": ["<all_urls>"],
@@ -36,7 +32,6 @@
       "run_at": "document_idle"
     }
   ],
-
   "web_accessible_resources": [
     {
       "resources": ["icons/*"],

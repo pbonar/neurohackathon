@@ -1,55 +1,358 @@
 <!DOCTYPE html>
-<html>
+<html lang="pl">
 <head>
-    <meta charset="utf-8">
-    <style>
-        body { width: 300px; font-family: 'Segoe UI', sans-serif; padding: 15px; background: #fff; }
-        h2 { text-align: center; margin-top: 0; color: #333; }
-        
-        .metric-container { margin-bottom: 20px; }
-        .label-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
-        
-        .progress-bg {
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            height: 20px;
-            width: 100%;
-            overflow: hidden;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Touch the Grass - Brain Monitor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        .progress-fill {
-            height: 100%;
-            width: 0%; /* To będziemy zmieniać JS-em */
-            transition: width 0.5s ease-in-out, background-color 0.5s;
-        }
+    /* ===== TRYB JASNY (domyślny) ===== */
+    body {
+      width: 380px;
+      min-height: 480px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: #ffffff;
+      color: #1a1a1a;
+      overflow-x: hidden;
+    }
 
-        #bar-focus { background-color: #4CAF50; } 
-        #bar-stress { background-color: #F44336; } 
-    </style>
+    .metric-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+    }
+
+    .metric-card:hover {
+      background: #f1f3f5;
+      border-color: #dee2e6;
+    }
+
+    .progress-container {
+      background: #e9ecef;
+    }
+
+    .status-footer {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+    }
+
+    .alert-box {
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+
+    .alert-box .alert-text {
+      color: #dc2626;
+    }
+
+    /* ===== TRYB CIEMNY ===== */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0d0d0d;
+        color: #f5f5f5;
+      }
+
+      .metric-card {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+      }
+
+      .metric-card:hover {
+        background: #222222;
+        border-color: #333333;
+      }
+
+      .progress-container {
+        background: #0d0d0d;
+      }
+
+      .status-footer {
+        background: #1a1a1a;
+        border: 1px solid #2a2a2a;
+      }
+
+      .alert-box {
+        background: rgba(239, 68, 68, 0.12);
+        border-color: rgba(239, 68, 68, 0.35);
+      }
+
+      .alert-box .alert-text {
+        color: #fca5a5;
+      }
+    }
+
+    /* ===== WSPÓLNE STYLE ===== */
+    .container {
+      padding: 20px;
+    }
+
+    .header {
+      text-align: center;
+      margin-bottom: 24px;
+      animation: fadeIn 0.5s ease;
+    }
+
+    .header h1 {
+      font-size: 20px;
+      font-weight: 600;
+      margin-bottom: 4px;
+      letter-spacing: -0.3px;
+    }
+
+    .header .subtitle {
+      font-size: 12px;
+      opacity: 0.6;
+      font-weight: 400;
+    }
+
+    .emoji-brain {
+      font-size: 36px;
+      display: block;
+      margin-bottom: 10px;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-10px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .metric-card {
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+      transition: all 0.3s ease;
+      animation: slideIn 0.5s ease;
+    }
+
+    .metric-card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    }
+
+    @keyframes slideIn {
+      from { opacity: 0; transform: translateX(-20px); }
+      to { opacity: 1; transform: translateX(0); }
+    }
+
+    .metric-card:nth-child(3) {
+      animation-delay: 0.1s;
+    }
+
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      min-height: 36px;
+    }
+
+    .metric-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      opacity: 0.7;
+    }
+
+    .metric-icon {
+      font-size: 16px;
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+      line-height: 1;
+    }
+
+    .progress-container {
+      position: relative;
+      border-radius: 20px;
+      height: 8px;
+      overflow: hidden;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .progress-bar::after {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: linear-gradient(90deg, 
+        transparent 0%, 
+        rgba(255,255,255,0.3) 50%, 
+        transparent 100%);
+      animation: shimmer 2s infinite;
+    }
+
+    @keyframes shimmer {
+      0% { transform: translateX(-100%); }
+      100% { transform: translateX(100%); }
+    }
+
+    #bar-focus {
+      background: linear-gradient(90deg, #10b981 0%, #34d399 100%);
+    }
+
+    #bar-stress {
+      background: linear-gradient(90deg, #ef4444 0%, #f87171 100%);
+    }
+
+    .status-footer {
+      border-radius: 18px;
+      padding: 14px 16px;
+      text-align: center;
+      animation: fadeIn 0.8s ease;
+      margin-top: 4px;
+    }
+
+    .status-line {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .status-indicator {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      animation: blink 2s ease-in-out infinite;
+      flex-shrink: 0;
+    }
+
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.4; }
+    }
+
+    .status-indicator.connected {
+      background-color: #10b981;
+    }
+
+    .status-indicator.disconnected {
+      background-color: #ef4444;
+    }
+
+    .status-indicator.connecting {
+      background-color: #f59e0b;
+    }
+
+    .status-text {
+      font-size: 12px;
+      font-weight: 500;
+      opacity: 0.8;
+    }
+
+    .alert-box {
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 14px;
+      text-align: center;
+      border: 2px solid;
+      animation: shake 0.5s ease;
+      display: none;
+    }
+
+    .alert-box.show {
+      display: block;
+    }
+
+    @keyframes shake {
+      0%, 100% { transform: translateX(0); }
+      25% { transform: translateX(-5px); }
+      75% { transform: translateX(5px); }
+    }
+
+    .alert-box .alert-emoji {
+      font-size: 22px;
+      margin-bottom: 5px;
+    }
+
+    .alert-box .alert-text {
+      font-size: 13px;
+      font-weight: 600;
+    }
+
+    .timestamp {
+      font-size: 10px;
+      opacity: 0.5;
+      margin-top: 6px;
+    }
+  </style>
 </head>
 <body>
-    <h2>🧠 Brain Monitor</h2>
-
-    <div class="metric-container">
-        <div class="label-row">
-            <span>SKUPIENIE</span>
-            <span id="text-focus">--%</span>
-        </div>
-        <div class="progress-bg">
-            <div id="bar-focus" class="progress-fill"></div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <span class="emoji-brain">🧠</span>
+      <h1>Brain Monitor</h1>
+      <div class="subtitle">Touch the Grass Extension</div>
     </div>
 
-    <div class="metric-container">
-        <div class="label-row">
-            <span>STRES</span>
-            <span id="text-stress">--%</span>
-        </div>
-        <div class="progress-bg">
-            <div id="bar-stress" class="progress-fill"></div>
-        </div>
+    <div id="alert-box" class="alert-box">
+      <div class="alert-emoji">🛑</div>
+      <div class="alert-text">UWAGA! Potrzebujesz przerwy!</div>
     </div>
 
-    <script src="popup.js"></script>
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-label">
+          <span class="metric-icon">🎯</span>
+          SKUPIENIE
+        </div>
+        <div id="text-focus" class="metric-value">--%</div>
+      </div>
+      <div class="progress-container">
+        <div id="bar-focus" class="progress-bar"></div>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-label">
+          <span class="metric-icon">😰</span>
+          STRES
+        </div>
+        <div id="text-stress" class="metric-value">--%</div>
+      </div>
+      <div class="progress-container">
+        <div id="bar-stress" class="progress-bar"></div>
+      </div>
+    </div>
+
+    <div class="status-footer">
+      <div class="status-line">
+        <span id="status-indicator" class="status-indicator connecting"></span>
+        <span id="status-text" class="status-text">Łączenie z serwerem...</span>
+      </div>
+      <div id="last-update" class="timestamp"></div>
+    </div>
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>
