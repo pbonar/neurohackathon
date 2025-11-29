@@ -79,6 +79,8 @@ class EEGProcessor:
         elif focus_percent > 66: state = "skupione"
         stress_percent = 50 #zhardkodowane !!!! 
 
+        print(f"focus_percent: {round(focus_percent, 2)}, stress_percent: {round(stress_percent, 2)}")
+
         return {
             "focus_percent": round(focus_percent, 2),
             "stress_percent": round(stress_percent, 2)
