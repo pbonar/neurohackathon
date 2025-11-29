@@ -6,7 +6,6 @@ const STRESS_KEYWORDS = [
   "emergency", "crisis", "important", "priority", "rush"
 ];
 
-// Debounce function to avoid excessive highlighting
 let highlightTimeout;
 function scheduleHighlight() {
   clearTimeout(highlightTimeout);
@@ -14,7 +13,6 @@ function scheduleHighlight() {
 }
 
 function highlightKeywords() {
-  // Don't highlight on certain sites where it might break things
   const excludedDomains = ['youtube.com', 'netflix.com', 'twitch.tv'];
   if (excludedDomains.some(domain => window.location.hostname.includes(domain))) {
     return;
@@ -25,7 +23,6 @@ function highlightKeywords() {
     NodeFilter.SHOW_TEXT,
     {
       acceptNode: function(node) {
-        // Skip script, style, and already highlighted elements
         if (node.parentElement.tagName === 'SCRIPT' ||
             node.parentElement.tagName === 'STYLE' ||
             node.parentElement.classList.contains('ttg-highlight')) {
@@ -61,14 +58,12 @@ function highlightKeywords() {
       
       let lastIndex = 0;
       text.replace(regex, (match, p1, offset) => {
-        // Add text before match
         if (offset > lastIndex) {
           fragment.appendChild(
             document.createTextNode(text.substring(lastIndex, offset))
           );
         }
         
-        // Add highlighted match
         const highlight = document.createElement('span');
         highlight.className = 'ttg-highlight';
         highlight.style.cssText = `
@@ -97,7 +92,6 @@ function highlightKeywords() {
         return match;
       });
       
-      // Add remaining text
       if (lastIndex < text.length) {
         fragment.appendChild(
           document.createTextNode(text.substring(lastIndex))
@@ -111,14 +105,12 @@ function highlightKeywords() {
   });
 }
 
-// Run highlighting on page load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', highlightKeywords);
 } else {
   highlightKeywords();
 }
 
-// Watch for dynamic content changes (e.g., Gmail, Slack)
 const observer = new MutationObserver(scheduleHighlight);
 observer.observe(document.body, {
   childList: true,
@@ -126,7 +118,6 @@ observer.observe(document.body, {
   characterData: false
 });
 
-// Listen for messages from popup
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
   if (request.action === 'getStressKeywordCount') {
     const bodyText = document.body.innerText.toLowerCase();

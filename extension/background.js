@@ -2,7 +2,7 @@
 let socket = null;
 let lastNotificationTime = 0;
 let reconnectAttempts = 0;
-const MAX_RECONNECT_DELAY = 30000; // 30 seconds max
+const MAX_RECONNECT_DELAY = 30000;
 
 function connect() {
   try {
@@ -48,10 +48,8 @@ function connect() {
 }
 
 function handleBrainData(data) {
-  // Update badge with focus level
   chrome.action.setBadgeText({ text: data.focus.toString() });
   
-  // Color coding based on focus level
   if (data.focus > 60) {
     chrome.action.setBadgeBackgroundColor({ color: "#4CAF50" }); // Green
   } else if (data.focus > 30) {
@@ -60,14 +58,12 @@ function handleBrainData(data) {
     chrome.action.setBadgeBackgroundColor({ color: "#F44336" }); // Red
   }
   
-  // Check for critical brain state
   const isBrainFried = (data.focus < 20) || (data.stress > 85);
   
   if (isBrainFried) {
     sendNotification(data);
   }
   
-  // Store data for popup access
   chrome.storage.local.set({
     lastBrainData: data,
     lastUpdate: Date.now()
@@ -77,7 +73,6 @@ function handleBrainData(data) {
 function sendNotification(data) {
   const now = Date.now();
   
-  // Throttle notifications to once per minute
   if (now - lastNotificationTime < 60000) {
     return;
   }
@@ -103,10 +98,8 @@ function sendNotification(data) {
   lastNotificationTime = now;
 }
 
-// Start connection when extension loads
 connect();
 
-// Listen for extension icon clicks
 chrome.action.onClicked.addListener(() => {
   chrome.action.openPopup();
 });

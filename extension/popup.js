@@ -120,7 +120,6 @@ function updateLastUpdateTime() {
   elements.lastUpdate.innerText = `Ostatnia aktualizacja: ${timeString}`;
 }
 
-// Load cached data immediately
 chrome.storage.local.get(['lastBrainData', 'lastUpdate'], (result) => {
   if (result.lastBrainData) {
     updateUI(result.lastBrainData);
@@ -137,10 +136,8 @@ chrome.storage.local.get(['lastBrainData', 'lastUpdate'], (result) => {
   }
 });
 
-// Start connection
 connectToMonitor();
 
-// Add visual feedback when popup opens
 document.addEventListener('DOMContentLoaded', () => {
   document.body.style.opacity = '0';
   setTimeout(() => {
