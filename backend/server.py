@@ -12,7 +12,7 @@ async def brain_stream(websocket):
         while True:
             focus_level = random.randint(40, 100) 
             
-            is_stressed = random.random() > 0.90 
+            is_stressed = random.random() > 0.0 
             stress_level = random.randint(80, 100) if is_stressed else random.randint(0, 30)
 
             data = {
