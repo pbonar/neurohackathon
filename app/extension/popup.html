@@ -1,77 +1,406 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <meta charset="utf-8">
-    <style>
-        body { width: 300px; font-family: 'Segoe UI', sans-serif; padding: 15px; background: #fff; }
-        h2 { text-align: center; margin-top: 0; color: #333; }
-        
-        .metric-container { margin-bottom: 20px; }
-        .label-row { display: flex; justify-content: space-between; margin-bottom: 5px; font-size: 14px; font-weight: bold; }
-        
-        .progress-bg {
-            background-color: #e0e0e0;
-            border-radius: 10px;
-            height: 20px;
-            width: 100%;
-            overflow: hidden;
-        }
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Touch the Grass - Brain Monitor</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
 
-        .progress-fill {
-            height: 100%;
-            width: 0%;
-            transition: width 0.5s ease-in-out, background-color 0.5s;
-        }
+    /* ===== BASE STYLES (LIGHT) ===== */
+    body {
+      width: 380px;
+      min-height: 550px;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
+      background: #ffffff;
+      color: #1a1a1a;
+      overflow-x: hidden;
+      position: relative;
+    }
 
-        #bar-focus { background-color: #4CAF50; } 
-        #bar-stress { background-color: #F44336; } 
+    /* METRIC CARDS */
+    .metric-card {
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+      border-radius: 18px;
+      padding: 18px;
+      margin-bottom: 14px;
+      transition: all 0.3s ease;
+      animation: slideIn 0.5s ease;
+    }
 
-        /* --- STYL PRZYCISKU KALIBRACJI --- */
-        .btn-container { text-align: center; margin-top: 20px; }
-        
-        button {
-            background-color: #2196F3; /* Niebieski */
-            color: white;
-            border: none;
-            padding: 10px 20px;
-            border-radius: 5px;
-            font-size: 14px;
-            cursor: pointer;
-            transition: background 0.3s;
-            width: 100%;
-        }
+    .metric-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 12px;
+      min-height: 36px;
+    }
 
-        button:hover { background-color: #0b7dda; }
-        button:disabled { background-color: #ccc; cursor: not-allowed; }
-    </style>
+    .metric-label {
+      font-size: 12px;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      display: flex;
+      align-items: center;
+      gap: 7px;
+      opacity: 0.7;
+      color: #1a1a1a; /* Forced color */
+    }
+
+    .metric-value {
+      font-size: 28px;
+      font-weight: 700;
+      line-height: 1;
+      color: #1a1a1a;
+    }
+
+    /* PROGRESS BARS */
+    .progress-container {
+      position: relative;
+      border-radius: 20px;
+      height: 8px;
+      overflow: hidden;
+      background: #e9ecef;
+    }
+
+    .progress-bar {
+      height: 100%;
+      width: 0%;
+      transition: width 0.8s cubic-bezier(0.4, 0.0, 0.2, 1);
+      border-radius: 20px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    #bar-focus { background: linear-gradient(90deg, #10b981 0%, #34d399 100%); }
+    #bar-stress { background: linear-gradient(90deg, #ef4444 0%, #f87171 100%); }
+
+    /* MAIN BUTTON (FOOTER) */
+    .status-footer {
+      border-radius: 18px;
+      padding: 14px 16px;
+      text-align: center;
+      animation: fadeIn 0.8s ease;
+      margin-top: 15px;
+      background: #f8f9fa;
+      border: 1px solid #e9ecef;
+    }
+
+    /* CALIBRATION BUTTON (STYLED AS 'NOTIFICATION TEST') */
+    #btn-start-calib {
+      margin-top: 12px;
+      width: 100%;
+      padding: 8px;
+      border: none;
+      border-radius: 8px;
+      background: #4CAF50;
+      color: white;
+      font-size: 11px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+    }
+    
+    #btn-start-calib:hover {
+      background: #45a049;
+      transform: translateY(-1px);
+    }
+
+    /* HEADER */
+    .header { text-align: center; margin-bottom: 24px; animation: fadeIn 0.5s ease; }
+    .header h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+    .header .subtitle { font-size: 12px; opacity: 0.6; }
+    .emoji-brain { font-size: 36px; display: block; margin-bottom: 10px; animation: pulse 2s infinite; }
+
+    /* STATUS FOOTER */
+    .status-line { display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
+    .status-indicator.connected { background-color: #10b981; }
+    .status-indicator.disconnected { background-color: #ef4444; }
+    .status-text { font-size: 12px; font-weight: 500; opacity: 0.8; }
+    .timestamp { font-size: 10px; opacity: 0.5; margin-top: 6px; }
+
+    /* ALERTS */
+    .alert-box {
+      border-radius: 18px;
+      padding: 14px;
+      margin-bottom: 14px;
+      text-align: center;
+      border: 2px solid;
+      display: none;
+      background: rgba(239, 68, 68, 0.08);
+      border-color: rgba(239, 68, 68, 0.25);
+    }
+    .alert-box.show { display: block; animation: shake 0.5s ease; }
+    .alert-text { color: #dc2626; font-size: 13px; font-weight: 600; }
+
+    /* ===== CALIBRATION (Overlay) ===== */
+    .hidden { display: none !important; }
+
+    #overlay-calibration {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: #ffffff;
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      padding: 30px;
+      animation: fadeIn 0.3s ease-in-out;
+    }
+
+    /* SELECTION CARDS (This was broken - fixing it!) */
+    .calib-options {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      width: 100%;
+    }
+
+    .calib-card {
+      background: #f8f9fa; /* Light background */
+      border: 2px solid #e9ecef;
+      border-radius: 16px;
+      padding: 15px;
+      cursor: pointer;
+      text-align: center;
+      transition: all 0.2s;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      
+      /* KEY FIX: FORCING DARK TEXT ON LIGHT CARD */
+      color: #333333 !important; 
+    }
+
+    .calib-card:hover {
+      border-color: #2196F3;
+      transform: translateY(-3px);
+      background: #fff;
+      box-shadow: 0 4px 12px rgba(33,150,243,0.15);
+    }
+
+    .calib-icon { font-size: 32px; margin-bottom: 8px; }
+    .calib-title { font-weight: 700; font-size: 13px; margin-bottom: 4px }
+    .calib-desc { font-size: 10px; opacity: 0.6}
+
+    /* SUDOKU */
+    .sudoku-board {
+      display: grid;
+      grid-template-columns: repeat(9, 1fr);
+      gap: 1px;
+      background: #333;
+      border: 2px solid #333;
+      width: 100%;
+      max-width: 320px;
+      aspect-ratio: 1;
+    }
+    .sudoku-cell {
+      background: #fff;
+      border: none;
+      text-align: center;
+      font-size: 16px;
+      font-weight: bold;
+      width: 100%;
+      height: 100%;
+      outline: none;
+      color: #000;
+    }
+    .sudoku-cell:nth-child(3n) { border-right: 2px solid #333; }
+    .sudoku-cell:nth-child(9n) { border-right: none; }
+
+    /* VIDEO */
+    .video-container {
+      width: 100%;
+      height: 350px;
+      background: #000;
+      border-radius: 12px;
+      overflow: hidden;
+      margin-top: 10px;
+    }
+
+    .container { padding: 20px; }
+
+    /* ===== DARK MODE (CORRECTED) ===== */
+    @media (prefers-color-scheme: dark) {
+      body {
+        background: #0d0d0d;
+        color: #f5f5f5;
+      }
+
+      .metric-card, .status-footer {
+        background: #1a1a1a;
+        border-color: #2a2a2a;
+      }
+
+      .metric-label, .metric-value {
+        color: #f5f5f5;
+      }
+
+      .progress-container {
+        background: #0d0d0d;
+      }
+
+      /* Fix overlay in dark mode */
+      #overlay-calibration {
+        background-color: #0d0d0d !important;
+        color: #f5f5f5 !important;
+      }
+
+      /* Fix cards in dark mode */
+      .calib-card {
+        background: #1a1a1a;
+        border-color: #333;
+        color: #f5f5f5 !important; /* White text on dark card */
+      }
+      .calib-card:hover {
+        background: #222;
+        border-color: #2196F3;
+      }
+
+      #btn-back-main, #btn-back-sudoku {
+        color: #ccc !important;
+      }
+    }
+
+    /* Animations */
+    @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
+    @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
+    @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-5px); } 75% { transform: translateX(5px); } }
+  </style>
 </head>
 <body>
-    <h2>🧠 Brain Monitor dupa</h2>
-
-    <div class="metric-container">
-        <div class="label-row">
-            <span>SKUPIENIE</span>
-            <span id="text-focus">--%</span>
-        </div>
-        <div class="progress-bg">
-            <div id="bar-focus" class="progress-fill"></div>
-        </div>
+  <div class="container">
+    <div class="header">
+      <span class="emoji-brain">🧠</span>
+      <h1>Brain Monitor</h1>
+      <div class="subtitle">Touch the Grass Extension</div>
     </div>
 
-    <div class="metric-container">
-        <div class="label-row">
-            <span>STRES</span>
-            <span id="text-stress">--%</span>
-        </div>
-        <div class="progress-bg">
-            <div id="bar-stress" class="progress-fill"></div>
-        </div>
+    <div id="alert-box" class="alert-box">
+      <div class="alert-emoji">🛑</div>
+      <div class="alert-text">ATTENTION! You need a break!</div>
     </div>
 
-    <div class="btn-container">
-        <button id="btn-calibrate">Rozpocznij Kalibrację</button>
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-label"><span class="metric-icon">🎯</span> FOCUS</div>
+        <div id="text-focus" class="metric-value">--%</div>
+      </div>
+      <div class="progress-container"><div id="bar-focus" class="progress-bar"></div></div>
     </div>
 
-    <script src="popup.js"></script>
+    <div class="metric-card">
+      <div class="metric-header">
+        <div class="metric-label"><span class="metric-icon">😰</span> STRESS</div>
+        <div id="text-stress" class="metric-value">--%</div>
+      </div>
+      <div class="progress-container"><div id="bar-stress" class="progress-bar"></div></div>
+    </div>
+
+    <div class="status-footer">
+      <div class="status-line">
+        <span id="status-indicator" class="status-indicator connecting"></span>
+        <span id="status-text" class="status-text">Connecting to server...</span>
+      </div>
+      <div id="last-update" class="timestamp"></div>
+      
+      <button id="btn-start-calib">
+        Start Calibration
+      </button>
+    </div>
+  </div>
+
+  <div id="overlay-calibration" class="hidden">
+    
+    <div id="calib-step-menu" style="width: 100%;">
+      <h2 style="margin-bottom: 20px; font-weight: 700; text-align: center;">Choose calibration mode</h2>
+      <p style="opacity: 0.7; margin-bottom: 30px; text-align: center;">What do you want to do now?</p>
+      
+      <div class="calib-options">
+        <button id="btn-choose-sudoku" class="calib-card">
+          <div class="calib-icon">🧩</div>
+          <div class="calib-title">Logic (Sudoku)</div>
+          <div class="calib-desc">Maximum focus</div>
+        </button>
+
+        <button id="btn-choose-brainrot" class="calib-card">
+          <div class="calib-icon">😵‍💫</div>
+          <div class="calib-title">Brainrot</div>
+          <div class="calib-desc">Total brain-off</div>
+        </button>
+      </div>
+
+      <button id="btn-back-main" style="margin-top: 30px; width:100%; background: transparent; border: none; color: #666; cursor: pointer;">
+        Cancel
+      </button>
+    </div>
+
+    <div id="calib-step-sudoku" class="hidden" style="width: 100%;">
+      <div style="font-size: 30px; text-align: center;">🧩</div>
+      <h3 style="text-align: center; margin-bottom: 5px;">Sudoku Focus</h3>
+      
+      <div id="sudoku-timer" style="font-size: 24px; font-weight: 800; color: #d32f2f; text-align: center; margin-bottom: 10px;">
+        01:00
+      </div>
+      
+      <div id="sudoku-board" class="sudoku-board" style="margin: 15px auto;"></div>
+      
+      <button id="btn-finish-sudoku" style="background-color: #4CAF50; width: 100%; padding: 10px; border: none; color: white; border-radius: 8px; cursor:pointer;">
+        Done
+      </button>
+
+      <button id="btn-back-sudoku" style="margin-top: 10px; background: transparent; border: none; color: #888; width: 100%; padding: 5px; cursor: pointer;">
+        ← Cancel / Go Back
+      </button>
+    </div>
+
+    <div id="calib-step-brainrot" class="hidden" style="width: 100%;">
+      <div style="font-size: 30px; text-align: center;">😵‍💫</div>
+      <h3 style="text-align: center;">Brainrot Zone</h3>
+      
+      <div class="video-container">
+        <video 
+          id="brainrot-player" 
+          width="100%" 
+          height="100%" 
+          controls 
+          autoplay 
+          loop
+          muted
+          playsinline
+          style="object-fit: cover; border-radius: 12px;">
+          Your browser does not support video.
+        </video>
+      </div>
+
+      <button id="btn-next-video" style="background-color: #2196F3; width: 100%; padding: 10px; border: none; color: white; border-radius: 8px; margin-top: 10px; cursor:pointer;">
+        Next video
+      </button>
+      
+      <button id="btn-finish-brainrot" style="background-color: #607D8B; width: 100%; padding: 10px; border: none; color: white; border-radius: 8px; margin-top: 5px; cursor:pointer;">
+        Enough
+      </button>
+    </div>
+
+  </div>
+
+  <script src="popup.js"></script>
 </body>
 </html>

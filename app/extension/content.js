@@ -6,6 +6,97 @@ const STRESS_KEYWORDS = [
   "emergency", "crisis", "important", "priority", "rush"
 ];
 
+// -----------------------------------------------
+// 🧠 ZMIENNA GLOBALNA PRZECHOWUJĄCA STRES Z BACKENDU
+// -----------------------------------------------
+let currentStressLevel = 0; // Domyślnie niski stres
+const ALERT_THRESHOLD = 70; // 70% jako próg ostrzegania
+
+// -----------------------------------------------
+// FUNKCJE POMOCNICZE
+// -----------------------------------------------
+
+function isMessageInput(element) {
+  const tagName = element.tagName;
+  const type = element.type;
+  const role = element.getAttribute('role'); 
+
+  if (tagName === 'TEXTAREA') return true;
+  if (tagName === 'INPUT' && (type === 'text' || type === 'search' || type === 'email' || type === 'url')) return true;
+  
+  const isExplicitlyEditable = element.getAttribute('contenteditable') === 'true';
+  
+  if ((isExplicitlyEditable || role === 'textbox') && element.tagName !== 'BUTTON' && element.tagName !== 'A') {
+      return true;
+  }
+  
+  return false;
+}
+
+// -----------------------------------------------
+// 🚨 GŁÓWNA LOGIKA: OSTRZEGANIE O STRESIE (FOCUSIN)
+// -----------------------------------------------
+
+document.addEventListener('focusin', (event) => {
+    let currentElement = event.target;
+    let messageInput = null;
+    
+    // 1. Znajdź pole wiadomości (przechodząc w górę DOM)
+    for (let i = 0; i < 10; i++) { 
+        if (!currentElement) break;
+        if (isMessageInput(currentElement)) {
+            messageInput = currentElement;
+            break;
+        }
+        currentElement = currentElement.parentElement;
+    }
+    
+    if (messageInput) {
+        
+        console.log(`🧠 DEBUG: Fokus na pole. Aktualny poziom stresu (z backendu): ${currentStressLevel}%`);
+
+        if (currentStressLevel >= ALERT_THRESHOLD) {
+            // 2. WYŚWIETLENIE OSTRZEŻENIA
+            // Używamy alertu do testów, ale powiadomienie powinno być bardziej subtelne
+            alert(`🚨 WYSOKI STRES (${currentStressLevel}%)! Pomyśl dwa razy przed wysłaniem tej wiadomości.`);
+        }
+    }
+});
+
+
+// -----------------------------------------------
+// 🛰️ NASŁUCHIWANIE NA DANE O STRESIE Z BACKENDU
+// -----------------------------------------------
+
+chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    // 1. Logika aktualizacji poziomu stresu (zakładamy, że akcja to 'updateStress')
+    if (request.action === 'updateStress' && request.data) {
+        
+        const receivedStress = request.data.stress;
+
+        if (typeof receivedStress === 'number') {
+            currentStressLevel = receivedStress;
+            console.log(`✅ Zaktualizowano poziom stresu z backendu: ${currentStressLevel}%`);
+        }
+    }
+    
+    // 2. Logika dla innych akcji (np. zapytań o słowa kluczowe)
+    if (request.action === 'getStressKeywordCount') {
+        const bodyText = document.body.innerText.toLowerCase();
+        let count = 0;
+        STRESS_KEYWORDS.forEach(keyword => {
+            const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
+            const matches = bodyText.match(regex);
+            if (matches) count += matches.length;
+        });
+        sendResponse({ count });
+    }
+});
+
+
+// -----------------------------------------------
+// 🎨 LOGIKA PODŚWIETLANIA SŁÓW KLUCZOWYCH
+// -----------------------------------------------
 let highlightTimeout;
 function scheduleHighlight() {
   clearTimeout(highlightTimeout);
@@ -76,7 +167,6 @@ function highlightKeywords() {
         `;
         highlight.textContent = match;
         
-        // Add hover effect
         highlight.addEventListener('mouseenter', function() {
           this.style.backgroundColor = '#ffc107';
           this.style.transform = 'scale(1.05)';
@@ -116,19 +206,6 @@ observer.observe(document.body, {
   childList: true,
   subtree: true,
   characterData: false
-});
-
-chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
-  if (request.action === 'getStressKeywordCount') {
-    const bodyText = document.body.innerText.toLowerCase();
-    let count = 0;
-    STRESS_KEYWORDS.forEach(keyword => {
-      const regex = new RegExp(`\\b${keyword}\\b`, 'gi');
-      const matches = bodyText.match(regex);
-      if (matches) count += matches.length;
-    });
-    sendResponse({ count });
-  }
 });
 
 console.log("🌿 Touch the Grass: Monitoring " + STRESS_KEYWORDS.length + " stress keywords");
