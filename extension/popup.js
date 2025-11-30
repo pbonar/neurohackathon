@@ -4,21 +4,21 @@ let socket = null;
 let reconnectAttempts = 0;
 const MAX_RECONNECT_DELAY = 30000;
 
-// Zmienne globalne
+// Global variables
 let currentPuzzle = [];
 let currentSolution = [];
-let sudokuTimerInterval = null; // Zmienna do licznika czasu
+let sudokuTimerInterval = null; // Variable for the time counter
 
-// Lista lokalnych plików wideo
+// List of local video files
 const brainrotVideos = [
     "videos/video1.mp4",
     "videos/video2.mp4",
     "videos/video3.mp4"
 ];
 
-// Pobieranie elementów z HTML
+// Fetching elements from HTML
 const elements = {
-  // Główne wskaźniki
+  // Main indicators
   textFocus: document.getElementById('text-focus'),
   barFocus: document.getElementById('bar-focus'),
   textStress: document.getElementById('text-stress'),
@@ -28,32 +28,32 @@ const elements = {
   lastUpdate: document.getElementById('last-update'),
   alertBox: document.getElementById('alert-box'),
   
-  // Nakładka i widoki
+  // Overlay and views
   overlayCalibration: document.getElementById('overlay-calibration'),
   stepMenu: document.getElementById('calib-step-menu'),
   stepSudoku: document.getElementById('calib-step-sudoku'),
   stepBrainrot: document.getElementById('calib-step-brainrot'),
   
-  // Przyciski
+  // Buttons
   btnStartCalib: document.getElementById('btn-start-calib'),
   btnChooseSudoku: document.getElementById('btn-choose-sudoku'),
   btnChooseBrainrot: document.getElementById('btn-choose-brainrot'),
   btnBackMain: document.getElementById('btn-back-main'),
 
-  // Elementy Sudoku
+  // Sudoku elements
   sudokuBoard: document.getElementById('sudoku-board'),
   btnFinishSudoku: document.getElementById('btn-finish-sudoku'),
   btnBackSudoku: document.getElementById('btn-back-sudoku'),
-  sudokuTimer: document.getElementById('sudoku-timer'), // Licznik czasu w HTML
+  sudokuTimer: document.getElementById('sudoku-timer'), // Time counter in HTML
 
-  // Elementy Brainrot
+  // Brainrot elements
   brainrotPlayer: document.getElementById('brainrot-player'),
   btnNextVideo: document.getElementById('btn-next-video'),
   btnFinishBrainrot: document.getElementById('btn-finish-brainrot')
 };
 
 // ============================================================
-// 1. LOGIKA WEBSOCKET
+// 1. WEBSOCKET LOGIC
 // ============================================================
 
 function connectToMonitor() {
@@ -63,7 +63,7 @@ function connectToMonitor() {
     socket.onopen = () => {
       console.log("✅ Popup connected to Brain Monitor");
       reconnectAttempts = 0;
-      updateConnectionStatus('connected', 'Połączono z serwerem');
+      updateConnectionStatus('connected', 'Connected to server');
     };
     
     socket.onmessage = (event) => {
@@ -78,19 +78,19 @@ function connectToMonitor() {
     
     socket.onerror = (error) => {
       console.error("❌ WebSocket error:", error);
-      updateConnectionStatus('disconnected', 'Błąd połączenia');
+      updateConnectionStatus('disconnected', 'Connection error');
     };
     
     socket.onclose = () => {
       console.log("🔌 Connection closed, retrying...");
-      updateConnectionStatus('connecting', 'Ponowne łączenie...');
+      updateConnectionStatus('connecting', 'Reconnecting...');
       const delay = Math.min(1000 * Math.pow(2, reconnectAttempts), MAX_RECONNECT_DELAY);
       reconnectAttempts++;
       setTimeout(connectToMonitor, delay);
     };
   } catch (error) {
     console.error("Error creating WebSocket:", error);
-    updateConnectionStatus('disconnected', 'Nie można połączyć');
+    updateConnectionStatus('disconnected', 'Cannot connect');
     setTimeout(connectToMonitor, 5000);
   }
 }
@@ -103,12 +103,12 @@ function sendCommand(command, extraData = {}) {
             ...extraData
         };
         socket.send(JSON.stringify(payload));
-        console.log(`📤 Wysłano komendę: ${command}`, payload);
+        console.log(`📤 Command sent: ${command}`, payload);
     }
 }
 
 // ============================================================
-// 2. AKTUALIZACJA UI
+// 2. UI UPDATE
 // ============================================================
 
 function updateUI(data) {
@@ -136,9 +136,9 @@ function updateUI(data) {
   const isCritical = (data.focus < 20) || (data.stress > 85);
   if (isCritical) {
     elements.alertBox.classList.add('show');
-    if (data.focus < 20 && data.stress > 85) elements.alertBox.querySelector('.alert-text').innerText = "KRYZYS! Niskie skupienie i wysoki stres!";
-    else if (data.focus < 20) elements.alertBox.querySelector('.alert-text').innerText = "Skupienie krytycznie niskie! Zrób przerwę!";
-    else elements.alertBox.querySelector('.alert-text').innerText = "Poziom stresu krytyczny! Idź dotknij trawy!";
+    if (data.focus < 20 && data.stress > 85) elements.alertBox.querySelector('.alert-text').innerText = "CRISIS! Low focus and high stress!";
+    else if (data.focus < 20) elements.alertBox.querySelector('.alert-text').innerText = "Focus critically low! Take a break!";
+    else elements.alertBox.querySelector('.alert-text').innerText = "Stress level critical! Go touch some grass!";
   } else {
     elements.alertBox.classList.remove('show');
   }
@@ -151,11 +151,11 @@ function updateConnectionStatus(status, text) {
 
 function updateLastUpdateTime() {
   const now = new Date();
-  elements.lastUpdate.innerText = `Ostatnia aktualizacja: ${now.toLocaleTimeString()}`;
+  elements.lastUpdate.innerText = `Last update: ${now.toLocaleTimeString()}`;
 }
 
 // ============================================================
-// 3. NAWIGACJA (PRZEŁĄCZANIE EKRANÓW)
+// 3. NAVIGATION (SCREEN SWITCHING)
 // ============================================================
 
 function showSection(sectionId) {
@@ -168,13 +168,13 @@ function showSection(sectionId) {
     if (sectionId === 'brainrot') elements.stepBrainrot.classList.remove('hidden');
 }
 
-// Główny przycisk "Start Kalibracji"
+// Main "Start Calibration" button
 elements.btnStartCalib.addEventListener('click', () => {
     elements.overlayCalibration.classList.remove('hidden');
     showSection('menu');
 });
 
-// Przycisk "Anuluj" w menu
+// "Cancel" button in the menu
 elements.btnBackMain.addEventListener('click', () => {
     elements.overlayCalibration.classList.add('hidden');
 });
@@ -185,7 +185,7 @@ elements.btnBackMain.addEventListener('click', () => {
 
 elements.btnChooseSudoku.addEventListener('click', () => {
     showSection('sudoku');
-    elements.sudokuBoard.innerHTML = '<div style="color:#666; padding:30px; text-align:center;">Ładowanie Sudoku...</div>';
+    elements.sudokuBoard.innerHTML = '<div style="color:#666; padding:30px; text-align:center;">Loading Sudoku...</div>';
 
     fetch('https://sudoku-api.vercel.app/api/dosuku')
         .then(res => res.json())
@@ -197,15 +197,15 @@ elements.btnChooseSudoku.addEventListener('click', () => {
             renderSudoku(currentPuzzle);
             sendCommand("start_calibration", { mode: "sudoku" });
             
-            // START TIMERA
+            // START TIMER
             startSudokuTimer();
         })
         .catch(err => {
-            console.error("Błąd API Sudoku:", err);
+            console.error("Sudoku API Error:", err);
             useBackupSudoku();
             sendCommand("start_calibration", { mode: "sudoku" });
             
-            // START TIMERA (nawet przy backupie)
+            // START TIMER (even with backup)
             startSudokuTimer();
         });
 });
@@ -238,7 +238,7 @@ function useBackupSudoku() {
     renderSudoku(currentPuzzle);
 }
 
-// Przycisk "Gotowe" w Sudoku
+// "Done" button in Sudoku
 elements.btnFinishSudoku.addEventListener('click', () => {
     const cells = document.querySelectorAll('.sudoku-cell');
     let errors = 0;
@@ -254,27 +254,27 @@ elements.btnFinishSudoku.addEventListener('click', () => {
         else if (!cell.disabled) { cell.style.backgroundColor = "#c8e6c9"; }
     });
 
-    if (!isComplete) { alert("Uzupełnij wszystkie pola!"); return; }
-    if (errors > 0) { alert(`Masz ${errors} błędów!`); return; }
+    if (!isComplete) { alert("Fill in all fields!"); return; }
+    if (errors > 0) { alert(`You have ${errors} errors!`); return; }
 
-    stopSudokuTimer(); // Zatrzymaj czas
-    alert("BRAWO! Kalibracja zakończona sukcesem.");
+    stopSudokuTimer(); // Stop the timer
+    alert("CONGRATS! Calibration finished successfully.");
     finishCalibration();
 });
 
-// Przycisk "Wróć" w Sudoku
+// "Go Back" button in Sudoku
 elements.btnBackSudoku.addEventListener('click', () => {
-    stopSudokuTimer(); // Zatrzymaj czas
+    stopSudokuTimer(); // Stop the timer
     showSection('menu'); 
     sendCommand("stop_calibration");
 });
 
-// --- FUNKCJE TIMERA ---
+// --- TIMER FUNCTIONS ---
 
 function startSudokuTimer() {
-    let timeLeft = 60; // Czas w sekundach
+    let timeLeft = 60; // Time in seconds
     
-    // Reset wizualny
+    // Visual reset
     if(elements.sudokuTimer) {
         elements.sudokuTimer.innerText = "01:00";
         elements.sudokuTimer.style.color = "#d32f2f"; 
@@ -294,7 +294,7 @@ function startSudokuTimer() {
 
         if (timeLeft <= 0) {
             stopSudokuTimer();
-            alert("⏰ CZAS MINĄŁ! Koniec kalibracji.");
+            alert("⏰ TIME IS UP! Calibration finished.");
             finishCalibration(); 
         }
     }, 1000);
@@ -327,14 +327,14 @@ elements.btnFinishBrainrot.addEventListener('click', () => {
 
 function loadRandomVideo() {
     const randomVideoFile = brainrotVideos[Math.floor(Math.random() * brainrotVideos.length)];
-    console.log("Ładowanie lokalnego wideo:", randomVideoFile);
+    console.log("Loading local video:", randomVideoFile);
     elements.brainrotPlayer.src = randomVideoFile;
-    // Autoplay w popupie
-    elements.brainrotPlayer.play().catch(e => console.log("Autoplay zablokowany:", e));
+    // Autoplay in popup
+    elements.brainrotPlayer.play().catch(e => console.log("Autoplay blocked:", e));
 }
 
 // ============================================================
-// 6. WSPÓLNE ZAKOŃCZENIE I START
+// 6. COMMON FINISH AND START
 // ============================================================
 
 function finishCalibration() {
@@ -344,7 +344,7 @@ function finishCalibration() {
     sendCommand("stop_calibration");
 }
 
-// Inicjalizacja przy starcie
+// Initialization on start
 connectToMonitor();
 
 document.addEventListener('DOMContentLoaded', () => {

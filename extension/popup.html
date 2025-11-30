@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="pl">
+<html lang="en">
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -11,7 +11,7 @@
       box-sizing: border-box;
     }
 
-    /* ===== STYLE BAZOWE (JASNE) ===== */
+    /* ===== BASE STYLES (LIGHT) ===== */
     body {
       width: 380px;
       min-height: 550px;
@@ -22,7 +22,7 @@
       position: relative;
     }
 
-    /* KARTY METRYK */
+    /* METRIC CARDS */
     .metric-card {
       background: #f8f9fa;
       border: 1px solid #e9ecef;
@@ -50,7 +50,7 @@
       align-items: center;
       gap: 7px;
       opacity: 0.7;
-      color: #1a1a1a; /* Wymuszony kolor */
+      color: #1a1a1a; /* Forced color */
     }
 
     .metric-value {
@@ -60,7 +60,7 @@
       color: #1a1a1a;
     }
 
-    /* PASKI POSTĘPU */
+    /* PROGRESS BARS */
     .progress-container {
       position: relative;
       border-radius: 20px;
@@ -81,7 +81,7 @@
     #bar-focus { background: linear-gradient(90deg, #10b981 0%, #34d399 100%); }
     #bar-stress { background: linear-gradient(90deg, #ef4444 0%, #f87171 100%); }
 
-    /* PRZYCISK GŁÓWNY (STOPKA) */
+    /* MAIN BUTTON (FOOTER) */
     .status-footer {
       border-radius: 18px;
       padding: 14px 16px;
@@ -92,7 +92,7 @@
       border: 1px solid #e9ecef;
     }
 
-    /* PRZYCISK KALIBRACJI (STYL 'TEST POWIADOMIENIA') */
+    /* CALIBRATION BUTTON (STYLED AS 'NOTIFICATION TEST') */
     #btn-start-calib {
       margin-top: 12px;
       width: 100%;
@@ -122,7 +122,7 @@
     .header .subtitle { font-size: 12px; opacity: 0.6; }
     .emoji-brain { font-size: 36px; display: block; margin-bottom: 10px; animation: pulse 2s infinite; }
 
-    /* STOPKA STATUSU */
+    /* STATUS FOOTER */
     .status-line { display: flex; align-items: center; justify-content: center; gap: 8px; }
     .status-indicator { width: 8px; height: 8px; border-radius: 50%; display: inline-block; }
     .status-indicator.connected { background-color: #10b981; }
@@ -130,7 +130,7 @@
     .status-text { font-size: 12px; font-weight: 500; opacity: 0.8; }
     .timestamp { font-size: 10px; opacity: 0.5; margin-top: 6px; }
 
-    /* ALERTY */
+    /* ALERTS */
     .alert-box {
       border-radius: 18px;
       padding: 14px;
@@ -144,7 +144,7 @@
     .alert-box.show { display: block; animation: shake 0.5s ease; }
     .alert-text { color: #dc2626; font-size: 13px; font-weight: 600; }
 
-    /* ===== KALIBRACJA (Overlay) ===== */
+    /* ===== CALIBRATION (Overlay) ===== */
     .hidden { display: none !important; }
 
     #overlay-calibration {
@@ -163,7 +163,7 @@
       animation: fadeIn 0.3s ease-in-out;
     }
 
-    /* KARTY WYBORU (To się zepsuło - naprawiamy!) */
+    /* SELECTION CARDS (This was broken - fixing it!) */
     .calib-options {
       display: grid;
       grid-template-columns: 1fr 1fr;
@@ -172,7 +172,7 @@
     }
 
     .calib-card {
-      background: #f8f9fa; /* Jasne tło */
+      background: #f8f9fa; /* Light background */
       border: 2px solid #e9ecef;
       border-radius: 16px;
       padding: 15px;
@@ -184,7 +184,7 @@
       align-items: center;
       justify-content: center;
       
-      /* KLUCZOWA POPRAWKA: WYMUSZAMY CIEMNY TEKST NA JASNEJ KARCIE */
+      /* KEY FIX: FORCING DARK TEXT ON LIGHT CARD */
       color: #333333 !important; 
     }
 
@@ -236,7 +236,7 @@
 
     .container { padding: 20px; }
 
-    /* ===== TRYB CIEMNY (POPRAWIONY) ===== */
+    /* ===== DARK MODE (CORRECTED) ===== */
     @media (prefers-color-scheme: dark) {
       body {
         background: #0d0d0d;
@@ -256,17 +256,17 @@
         background: #0d0d0d;
       }
 
-      /* Naprawa overlay w trybie ciemnym */
+      /* Fix overlay in dark mode */
       #overlay-calibration {
         background-color: #0d0d0d !important;
         color: #f5f5f5 !important;
       }
 
-      /* Naprawa kart w trybie ciemnym */
+      /* Fix cards in dark mode */
       .calib-card {
         background: #1a1a1a;
         border-color: #333;
-        color: #f5f5f5 !important; /* Biały tekst na ciemnej karcie */
+        color: #f5f5f5 !important; /* White text on dark card */
       }
       .calib-card:hover {
         background: #222;
@@ -278,7 +278,7 @@
       }
     }
 
-    /* Animacje */
+    /* Animations */
     @keyframes pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.05); } }
     @keyframes slideIn { from { opacity: 0; transform: translateX(-20px); } to { opacity: 1; transform: translateX(0); } }
     @keyframes fadeIn { from { opacity: 0; transform: translateY(-10px); } to { opacity: 1; transform: translateY(0); } }
@@ -295,12 +295,12 @@
 
     <div id="alert-box" class="alert-box">
       <div class="alert-emoji">🛑</div>
-      <div class="alert-text">UWAGA! Potrzebujesz przerwy!</div>
+      <div class="alert-text">ATTENTION! You need a break!</div>
     </div>
 
     <div class="metric-card">
       <div class="metric-header">
-        <div class="metric-label"><span class="metric-icon">🎯</span> SKUPIENIE</div>
+        <div class="metric-label"><span class="metric-icon">🎯</span> FOCUS</div>
         <div id="text-focus" class="metric-value">--%</div>
       </div>
       <div class="progress-container"><div id="bar-focus" class="progress-bar"></div></div>
@@ -308,7 +308,7 @@
 
     <div class="metric-card">
       <div class="metric-header">
-        <div class="metric-label"><span class="metric-icon">😰</span> STRES</div>
+        <div class="metric-label"><span class="metric-icon">😰</span> STRESS</div>
         <div id="text-stress" class="metric-value">--%</div>
       </div>
       <div class="progress-container"><div id="bar-stress" class="progress-bar"></div></div>
@@ -317,12 +317,12 @@
     <div class="status-footer">
       <div class="status-line">
         <span id="status-indicator" class="status-indicator connecting"></span>
-        <span id="status-text" class="status-text">Łączenie z serwerem...</span>
+        <span id="status-text" class="status-text">Connecting to server...</span>
       </div>
       <div id="last-update" class="timestamp"></div>
       
       <button id="btn-start-calib">
-        ⚙️ Rozpocznij Kalibrację
+        Start Calibration
       </button>
     </div>
   </div>
@@ -330,25 +330,25 @@
   <div id="overlay-calibration" class="hidden">
     
     <div id="calib-step-menu" style="width: 100%;">
-      <h2 style="margin-bottom: 20px; font-weight: 700; text-align: center;">Wybierz tryb kalibracji</h2>
-      <p style="opacity: 0.7; margin-bottom: 30px; text-align: center;">Co chcesz teraz robić?</p>
+      <h2 style="margin-bottom: 20px; font-weight: 700; text-align: center;">Choose calibration mode</h2>
+      <p style="opacity: 0.7; margin-bottom: 30px; text-align: center;">What do you want to do now?</p>
       
       <div class="calib-options">
         <button id="btn-choose-sudoku" class="calib-card">
           <div class="calib-icon">🧩</div>
-          <div class="calib-title">Logika (Sudoku)</div>
-          <div class="calib-desc">Maksymalne skupienie</div>
+          <div class="calib-title">Logic (Sudoku)</div>
+          <div class="calib-desc">Maximum focus</div>
         </button>
 
         <button id="btn-choose-brainrot" class="calib-card">
           <div class="calib-icon">😵‍💫</div>
           <div class="calib-title">Brainrot</div>
-          <div class="calib-desc">Totalny odmóżdżacz</div>
+          <div class="calib-desc">Total brain-off</div>
         </button>
       </div>
 
       <button id="btn-back-main" style="margin-top: 30px; width:100%; background: transparent; border: none; color: #666; cursor: pointer;">
-        Anuluj
+        Cancel
       </button>
     </div>
 
@@ -363,11 +363,11 @@
       <div id="sudoku-board" class="sudoku-board" style="margin: 15px auto;"></div>
       
       <button id="btn-finish-sudoku" style="background-color: #4CAF50; width: 100%; padding: 10px; border: none; color: white; border-radius: 8px; cursor:pointer;">
-        ✅ Gotowe
+        Done
       </button>
 
       <button id="btn-back-sudoku" style="margin-top: 10px; background: transparent; border: none; color: #888; width: 100%; padding: 5px; cursor: pointer;">
-        ← Anuluj / Wróć
+        ← Cancel / Go Back
       </button>
     </div>
 
@@ -386,16 +386,16 @@
           muted
           playsinline
           style="object-fit: cover; border-radius: 12px;">
-          Twoja przeglądarka nie obsługuje wideo.
+          Your browser does not support video.
         </video>
       </div>
 
       <button id="btn-next-video" style="background-color: #2196F3; width: 100%; padding: 10px; border: none; color: white; border-radius: 8px; margin-top: 10px; cursor:pointer;">
-        📺 Następny filmik
+        Next video
       </button>
       
       <button id="btn-finish-brainrot" style="background-color: #607D8B; width: 100%; padding: 10px; border: none; color: white; border-radius: 8px; margin-top: 5px; cursor:pointer;">
-        ✅ Wystarczy
+        Enough
       </button>
     </div>
 
